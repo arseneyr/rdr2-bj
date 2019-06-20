@@ -1,0 +1,4 @@
+[submodule "cra"]
+	path = cra
+	url = https://github.com/arseneyr/create-react-app
+	branch = soundboys
