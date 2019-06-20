@@ -2,13 +2,12 @@ addEventListener("message", ({ data }) => {
   data.removed_cards &&
     wasm.then(({ Deck, Card, SpecificHandEV }) => {
       const remaining_deck = Deck.generate(1);
-      for (card in data.removed_cards) {
+      for (card of data.removed_cards) {
         remaining_deck.remove_card(card);
       }
       remaining_deck.remove_card(data.dealer_card);
       const hand = Deck.new();
-      for (card in data.hand) {
-        hand.add_card(card);
+      for (card of data.hand) {
         hand.add_card(card);
       }
       const ev = SpecificHandEV.create(
@@ -16,11 +15,12 @@ addEventListener("message", ({ data }) => {
         hand,
         Card.Five,
         progress => {
-          console.log(progress);
           postMessage({ progress });
         }
       );
-      postMessage({ ev });
+      postMessage({
+        ev: { hit: ev.hit, stand: ev.stand, split: ev.split, double: ev.double }
+      });
     });
 });
 

@@ -3,9 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@material-ui/core": "^4.1.1",
+    "@material-ui/icons": "^4.2.0",
+    "@types/jest": "^24.0.15",
+    "@types/node": "^12.0.8",
+    "@types/react": "^16.8.21",
+    "@types/react-dom": "^16.8.4",
+    "immer": "^3.1.3",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-scripts": "file:./cra/packages/react-scripts"
+    "react-scripts": "file:./cra/packages/react-scripts",
+    "typescript": "^3.5.2"
   },
   "scripts": {
     "build-rust": "wasm-pack build --out-dir src/wasm --out-name index --release",

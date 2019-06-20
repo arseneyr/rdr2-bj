@@ -290,7 +290,7 @@ fn get_split_ev_inner(
         let mut other_split_ev = None;
         if let Some(f) = progress_callback {
             if i % (split_hands.len() / 10) == 0 {
-                f.call1(&JsValue::NULL, &JsValue::from_f64(i as f64 / split_hands.len() as f64));
+                f.call1(&JsValue::NULL, &JsValue::from_f64(i as f64 / split_hands.len() as f64)).ok();
             }
         }
         {
@@ -536,6 +536,7 @@ pub struct SpecificHandEV {
     dealer_card: Card,
     current_hand: Hand,
     all_evs: HashMap<Hand, HandEV>,
+    pair_card: Option<Card>
 }
 
 #[wasm_bindgen]
@@ -559,8 +560,10 @@ impl SpecificHandEV {
         let mut dealer_calc = DealerProbCalculator::new();
         let starting_deck = &(remaining_deck + hand) + dealer_card;
         let mut hands = generate_all_hands(&starting_deck);
+        let mut pair_card = None;
         if hand.get_count() == 2 && hand.iter().nth(0).unwrap() == hand.iter().nth(1).unwrap() {
-            hands.retain(|h, _| Deck::from(&[hand.iter().nth(0).unwrap()]).is_subset(h));
+            pair_card = hand.iter().nth(0);
+            hands.retain(|h, _| Deck::from(&[pair_card.unwrap()]).is_subset(h));
         } else {
             hands.retain(|h, _| hand.is_subset(h));
         }
@@ -609,6 +612,7 @@ impl SpecificHandEV {
                 .into_iter()
                 .map(|(h, hev)| (h, hev.into_inner()))
                 .collect::<HashMap<Hand, HandEV>>(),
+            pair_card
         };
         ret.update_probs();
         ret
