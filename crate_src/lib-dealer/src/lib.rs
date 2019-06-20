@@ -6889,7 +6889,7 @@ let p_2033 = p_2021 * p_1_9_11;
 
 let mut ret = [DealerProb::default(); 10];
 for (i,p) in prob.iter().enumerate() {
-    if (d[i] == 0) {
+    if d[i] == 0 {
         ret[i] = DealerProb{
             p_17: 0.0,
             p_18: 0.0,

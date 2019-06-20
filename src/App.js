@@ -2,24 +2,21 @@ import React, { useEffect, useState } from "react";
 import logo from "./logo.svg";
 import "./App.css";
 
+import Worker from "./bj.worker";
+
 function App() {
   const [prob, setProb] = useState(null);
+  const [progress, setProgress] = useState(0);
   useEffect(() => {
-    import("./wasm").then(({ Deck, Card, SpecificHandEV }) => {
-      const remaining_deck = Deck.generate(1);
-      remaining_deck.remove_card(Card.Ace);
-      remaining_deck.remove_card(Card.Ace);
-      remaining_deck.remove_card(Card.Five);
-      const hand = Deck.new();
-      hand.add_card(Card.Ace);
-      hand.add_card(Card.Ace);
-      setProb(SpecificHandEV.create(remaining_deck, hand, Card.Eight).split);
-    });
+    const worker = new Worker();
+    worker.onmessage = ({ data }) => setProgress(data.progress);
   }, []);
   return (
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
+        {progress}
+        <br />
         {prob}
       </header>
     </div>

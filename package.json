@@ -8,8 +8,9 @@
     "react-scripts": "file:./cra/packages/react-scripts"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build-rust": "wasm-pack build --out-dir src/wasm --out-name index --release",
+    "start": "npm run build-rust && react-scripts start",
+    "build": "npm run build-rust && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
