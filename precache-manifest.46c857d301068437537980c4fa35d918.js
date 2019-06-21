@@ -12,11 +12,11 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/rdr2-bj/e13f564e7e8545b51511.worker.js"
   },
   {
-    "revision": "b13698d65a45f49fcfd74b923256f68c",
+    "revision": "fd655d0eac7bb72f0a92cfccdf5a26bd",
     "url": "/rdr2-bj/index.html"
   },
   {
-    "revision": "4f91329ace6acd19326c",
+    "revision": "e9d885d6492bc3a47e03",
     "url": "/rdr2-bj/static/css/main.34649644.chunk.css"
   },
   {
@@ -24,8 +24,8 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/rdr2-bj/static/js/2.6e91e303.chunk.js"
   },
   {
-    "revision": "4f91329ace6acd19326c",
-    "url": "/rdr2-bj/static/js/main.bf2dd46e.chunk.js"
+    "revision": "e9d885d6492bc3a47e03",
+    "url": "/rdr2-bj/static/js/main.6a052938.chunk.js"
   },
   {
     "revision": "e6e943dd062ddac9ad94",
