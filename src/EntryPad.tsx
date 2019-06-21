@@ -1,11 +1,5 @@
 import React, { useCallback } from "react";
-import {
-  createStyles,
-  ButtonBase,
-  Typography,
-  WithStyles,
-  withStyles
-} from "@material-ui/core";
+import { makeStyles, ButtonBase, Typography } from "@material-ui/core";
 import { Card } from "./blackjack_rules";
 import { BackspaceTwoTone, CheckCircleTwoTone } from "@material-ui/icons";
 
@@ -24,7 +18,7 @@ const grouped_cards = array_chunks(
 
 const borderStyle = "4px solid rgba(255,171,0, 0.2)";
 
-const styles = createStyles({
+const useStyles = makeStyles({
   root: {
     display: "flex",
     flexDirection: "column",
@@ -49,22 +43,23 @@ const styles = createStyles({
   }
 });
 
-interface Props extends WithStyles<typeof styles> {
+interface Props {
   onCardClick: (card: Card) => void;
   cardsEnabled: { [index: number]: boolean };
   onBackspaceClick: () => void;
   backspaceEnabled: boolean;
   onSubmitClick: () => void;
   submitEnabled: boolean;
+  classes: any;
 }
 
-export default withStyles(styles)(function EntryPad({
-  classes,
+export default function EntryPad({
   onCardClick,
   onBackspaceClick,
   onSubmitClick,
   ...props
 }: Props) {
+  const classes = useStyles(props);
   return (
     <div className={classes.root}>
       {grouped_cards.map((row, i) => (
@@ -134,4 +129,4 @@ export default withStyles(styles)(function EntryPad({
       </div>
     </div>
   );
-});
+}

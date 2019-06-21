@@ -2,6 +2,7 @@
   "name": "rdr2-bj",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://arseneyr.github.io/rdr2-bj",
   "dependencies": {
     "@material-ui/core": "^4.1.1",
     "@material-ui/icons": "^4.2.0",
@@ -9,6 +10,7 @@
     "@types/node": "^12.0.8",
     "@types/react": "^16.8.21",
     "@types/react-dom": "^16.8.4",
+    "gh-pages": "^2.0.1",
     "immer": "^3.1.3",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -16,6 +18,8 @@
     "typescript": "^3.5.2"
   },
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
     "build-rust": "wasm-pack build --out-dir src/wasm --out-name index --release",
     "start": "npm run build-rust && react-scripts start",
     "build": "npm run build-rust && react-scripts build",

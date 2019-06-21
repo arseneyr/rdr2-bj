@@ -7,12 +7,9 @@ import React, {
 } from "react";
 import {
   CircularProgress,
-  withStyles,
-  WithStyles,
-  createStyles,
   Typography,
-  IconButton,
-  Button
+  Button,
+  makeStyles
 } from "@material-ui/core";
 import { Replay } from "@material-ui/icons";
 import { produce } from "immer";
@@ -27,8 +24,9 @@ import {
   get_unbusting_cards
 } from "./blackjack_rules";
 import EntryPad from "./EntryPad";
+import CardEntry from "./CardEntry";
 
-const styles = createStyles({
+const useStyles = makeStyles({
   root: {
     display: "flex",
     flexDirection: "column",
@@ -42,20 +40,6 @@ const styles = createStyles({
   display: {
     flex: "3 0 0",
     position: "relative"
-  },
-  entryTable: {
-    "& td:first-child": {
-      borderRight: "1px solid",
-      paddingRight: 8,
-      verticalAlign: "top"
-    },
-    "& td:last-child": {
-      paddingLeft: 8
-    },
-    "& td": {
-      padding: 0
-    },
-    borderSpacing: 0
   },
   displayInner: {
     display: "flex",
@@ -241,6 +225,7 @@ function reducer(state: State, action: Action) {
           }
         }
         if (draft.hit_card.length > 0) {
+          draft.insurance = null;
           draft.hand.push(draft.hit_card[0]);
           draft.hit_card = [];
         }
@@ -266,20 +251,16 @@ function get_max(ev: ExpectedValues) {
 }
 
 function ev_to_string(value: number) {
-  let num = Number(
-    Math.round(((value * 100 + "e2") as unknown) as number) + "e-2"
-  );
-  const padding = Math.abs(num) < 10 ? "  " : Math.abs(num) < 100 ? " " : "";
-  return (padding + (num < 0 ? "" : "+") + num).padEnd(7, "0") + "%";
+  let num = (value * 100).toFixed(2);
+  const padding =
+    Math.abs(value * 100) < 10 ? "  " : Math.abs(value * 100) < 100 ? " " : "";
+  return (padding + (value < 0 ? "" : "+") + num).padEnd(7, "0") + "%";
 }
 
 type WorkerReturn = { data: { ev: ExpectedValues } | { progress: number } };
 
-function card_arry_to_string(cards: Card[]) {
-  return cards.map(c => (c === 1 ? "A" : c)).join(" ");
-}
-
-function App({ classes }: WithStyles<typeof styles>) {
+function App() {
+  const classes = useStyles();
   const worker = useRef<any>(null);
   const [progress, setProgress] = useState<number | null>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
@@ -328,9 +309,12 @@ function App({ classes }: WithStyles<typeof styles>) {
       ...(state.entry_stage === EntryStage.Dealer && state.dealer.length > 0
         ? [{}]
         : []),
-      ...(state.entry_stage === EntryStage.Hit && state.hit_card.length > 0
-        ? [{}]
-        : [])
+      ...(state.entry_stage === EntryStage.Hit
+        ? state.hit_card.length > 0
+          ? [{}]
+          : [get_unbusting_cards(state.hand_value)]
+        : []),
+      ...(state.entry_stage === EntryStage.Done ? [{}] : [])
     ]
   );
   const instructions =
@@ -353,6 +337,7 @@ function App({ classes }: WithStyles<typeof styles>) {
     () => dispatch({ type: ActionType.Reset }),
     []
   );
+  console.log(state.result);
   return (
     <div className={classes.root}>
       <div className={classes.display}>
@@ -364,24 +349,22 @@ function App({ classes }: WithStyles<typeof styles>) {
           {instructions}
         </Typography>
         <div className={classes.displayInner}>
-          <table className={classes.entryTable}>
-            <tbody>
-              <tr>
-                <td>Hand</td>
-                <td>
-                  {card_arry_to_string(state.hand.concat(state.hit_card))}
-                </td>
-              </tr>
-              <tr>
-                <td>Dealer</td>
-                <td>{card_arry_to_string(state.dealer)}</td>
-              </tr>
-              <tr>
-                <td>Other</td>
-                <td>{card_arry_to_string(state.removed_cards)}</td>
-              </tr>
-            </tbody>
-          </table>
+          <CardEntry
+            hand={state.hand.concat(state.hit_card)}
+            dealer={state.dealer}
+            other={state.removed_cards}
+            active={
+              state.entry_stage === EntryStage.Start ||
+              state.entry_stage === EntryStage.Hand ||
+              state.entry_stage === EntryStage.Hit
+                ? "hand"
+                : state.entry_stage === EntryStage.Dealer
+                ? "dealer"
+                : state.entry_stage === EntryStage.RemovedCards
+                ? "other"
+                : undefined
+            }
+          />
           {state.result ? (
             <table className={classes.resultTable}>
               <tbody>
@@ -501,4 +484,4 @@ function App({ classes }: WithStyles<typeof styles>) {
   );
 }
 
-export default withStyles(styles)(App);
+export default App;
