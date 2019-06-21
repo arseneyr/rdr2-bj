@@ -112,6 +112,7 @@ const styles = createStyles({
 });
 
 enum EntryStage {
+  Start,
   Hand,
   Dealer,
   RemovedCards,
@@ -150,25 +151,30 @@ interface State {
   hand_value: HandValue;
   insurance: boolean | null;
   result: ExpectedValues | null;
+  hit_card: Card[];
 }
 
 const initialState: State = {
-  entry_stage: EntryStage.Hand,
+  entry_stage: EntryStage.Start,
   hand: [],
   dealer: [],
   removed_cards: [],
   hand_value: { soft: false, value: 0 },
   result: null,
-  insurance: null
+  insurance: null,
+  hit_card: []
 };
 
 function get_current_card_array(state: State) {
-  return state.entry_stage === EntryStage.Hand
+  return state.entry_stage === EntryStage.Hand ||
+    state.entry_stage === EntryStage.Start
     ? state.hand
     : state.entry_stage === EntryStage.Dealer
     ? state.dealer
     : state.entry_stage === EntryStage.RemovedCards
     ? state.removed_cards
+    : state.entry_stage === EntryStage.Hit
+    ? state.hit_card
     : null;
 }
 
@@ -179,9 +185,15 @@ function reducer(state: State, action: Action) {
     switch (action.type) {
       case ActionType.CardButton: {
         if (card_array) {
-          if (card_array !== draft.dealer || card_array.length === 0) {
+          if (
+            (card_array !== draft.dealer && card_array !== draft.hit_card) ||
+            card_array.length === 0
+          ) {
             card_array.push(action.payload);
           }
+        }
+        if (draft.entry_stage === EntryStage.Start) {
+          draft.entry_stage = EntryStage.Hand;
         }
         break;
       }
@@ -200,6 +212,7 @@ function reducer(state: State, action: Action) {
             draft.entry_stage = EntryStage.RemovedCards;
             break;
           case EntryStage.RemovedCards:
+          case EntryStage.Hit:
             draft.entry_stage = EntryStage.Working;
             break;
         }
@@ -227,6 +240,10 @@ function reducer(state: State, action: Action) {
             draft.insurance = false;
           }
         }
+        if (draft.hit_card.length > 0) {
+          draft.hand.push(draft.hit_card[0]);
+          draft.hit_card = [];
+        }
       }
     }
 
@@ -243,6 +260,8 @@ interface ExpectedValues {
 }
 
 function get_max(ev: ExpectedValues) {
+  ev = { ...ev };
+  delete ev.dealer_bj;
   return Math.max(...Object.values(ev).filter(n => !isNaN(n)));
 }
 
@@ -265,7 +284,7 @@ function App({ classes }: WithStyles<typeof styles>) {
   const [progress, setProgress] = useState<number | null>(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   useEffect(() => {
-    if (state.entry_stage === EntryStage.Working) {
+    if (state.entry_stage === EntryStage.Start) {
       if (worker.current) {
         worker.current.terminate();
       }
@@ -275,11 +294,18 @@ function App({ classes }: WithStyles<typeof styles>) {
           ? setProgress(data.progress)
           : (dispatch({ type: ActionType.Result, payload: data.ev }),
             setProgress(null));
-      worker.current.postMessage({
-        removed_cards: state.removed_cards,
-        hand: state.hand,
-        dealer_card: state.dealer[0]
-      });
+    } else if (state.entry_stage === EntryStage.Working) {
+      if (state.hit_card.length > 0) {
+        worker.current.postMessage({
+          hit_card: state.hit_card[0]
+        });
+      } else {
+        worker.current.postMessage({
+          removed_cards: state.removed_cards,
+          hand: state.hand,
+          dealer_card: state.dealer[0]
+        });
+      }
     }
   }, [state]);
   const card_array = get_current_card_array(state);
@@ -290,6 +316,8 @@ function App({ classes }: WithStyles<typeof styles>) {
       ? state.dealer.length < 1
       : state.entry_stage === EntryStage.RemovedCards
       ? false
+      : state.entry_stage === EntryStage.Hit
+      ? state.hit_card.length < 1
       : true;
   const cards_enabled = merge_valid_maps(
     ...[
@@ -299,11 +327,15 @@ function App({ classes }: WithStyles<typeof styles>) {
         : []),
       ...(state.entry_stage === EntryStage.Dealer && state.dealer.length > 0
         ? [{}]
+        : []),
+      ...(state.entry_stage === EntryStage.Hit && state.hit_card.length > 0
+        ? [{}]
         : [])
     ]
   );
   const instructions =
-    state.entry_stage === EntryStage.Hand ? (
+    state.entry_stage === EntryStage.Hand ||
+    state.entry_stage === EntryStage.Start ? (
       "Enter your initial hand"
     ) : state.entry_stage === EntryStage.Dealer ? (
       "Enter dealer's card"
@@ -336,7 +368,9 @@ function App({ classes }: WithStyles<typeof styles>) {
             <tbody>
               <tr>
                 <td>Hand</td>
-                <td>{card_arry_to_string(state.hand)}</td>
+                <td>
+                  {card_arry_to_string(state.hand.concat(state.hit_card))}
+                </td>
               </tr>
               <tr>
                 <td>Dealer</td>
@@ -434,15 +468,16 @@ function App({ classes }: WithStyles<typeof styles>) {
             undefined
           )}
         </div>
-        {state.entry_stage !== EntryStage.Hand && (
-          <Button
-            className={classes.reset}
-            color="inherit"
-            onClick={reset_callback}
-          >
-            Reset <Replay style={{ paddingLeft: 8 }} />
-          </Button>
-        )}
+        {state.entry_stage !== EntryStage.Hand &&
+          state.entry_stage !== EntryStage.Start && (
+            <Button
+              className={classes.reset}
+              color="inherit"
+              onClick={reset_callback}
+            >
+              Reset <Replay style={{ paddingLeft: 8 }} />
+            </Button>
+          )}
       </div>
       <EntryPad
         onCardClick={useCallback(
