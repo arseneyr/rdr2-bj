@@ -18,8 +18,15 @@ addEventListener("message", ({ data }) => {
           postMessage({ progress });
         }
       );
+      console.log(ev);
       postMessage({
-        ev: { hit: ev.hit, stand: ev.stand, split: ev.split, double: ev.double }
+        ev: {
+          hit: ev.hit,
+          stand: ev.stand,
+          split: ev.split,
+          double: ev.double,
+          dealer_bj: ev.dealer_bj
+        }
       });
     });
 });

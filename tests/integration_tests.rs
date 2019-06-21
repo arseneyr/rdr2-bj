@@ -1,3 +1,4 @@
+extern crate js_sys;
 use lib_blackjack::*;
 
 fn create_standard_deck() -> Deck {
@@ -106,5 +107,6 @@ fn small_deck() {
 fn specific_hand() {
   let mut deck = Deck::generate(1);
   deck.remove_cards(&[Card::Ace, Card::Ace, Card::Five]);
-  SpecificHandEV::create(&deck, &Hand::from(&[Card::Ace, Card::Ace]), Card::Five);
+  let ev = SpecificHandEV::create(&deck, &Hand::from(&[Card::Ace, Card::Ace]), Card::Ace, js_sys);
+  println!("{:?}", ev)
 }
