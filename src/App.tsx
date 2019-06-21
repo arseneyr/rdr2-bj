@@ -21,10 +21,14 @@ import {
   get_hand_value,
   merge_valid_maps,
   get_valid_cards,
-  get_unbusting_cards
+  get_unbusting_cards,
+  take_insurance,
+  ExpectedValues,
+  get_ev_max
 } from "./blackjack_rules";
 import EntryPad from "./EntryPad";
 import CardEntry from "./CardEntry";
+import ResultDisplay from "./ResultDisplay";
 
 const useStyles = makeStyles({
   root: {
@@ -56,6 +60,7 @@ const useStyles = makeStyles({
     margin: "8px 0px"
   },
   resultTable: {
+    flex: "1 0 auto",
     "& td:first-child": {
       textAlign: "end"
     },
@@ -207,22 +212,12 @@ function reducer(state: State, action: Action) {
       }
       case ActionType.Result: {
         draft.result = action.payload;
-        if (draft.result.hit && get_max(draft.result) === draft.result.hit) {
+        if (draft.result.hit && get_ev_max(draft.result) === draft.result.hit) {
           draft.entry_stage = EntryStage.Hit;
         } else if (draft.result.split !== undefined) {
           draft.entry_stage = EntryStage.ChooseSplit;
         } else {
           draft.entry_stage = EntryStage.Done;
-        }
-        if (
-          draft.dealer[0] === Card.Ace &&
-          draft.result.dealer_bj !== undefined
-        ) {
-          if (draft.result.dealer_bj >= 1 / 3) {
-            draft.insurance = true;
-          } else {
-            draft.insurance = false;
-          }
         }
         if (draft.hit_card.length > 0) {
           draft.insurance = null;
@@ -232,29 +227,17 @@ function reducer(state: State, action: Action) {
       }
     }
 
+    if (
+      draft.dealer[0] === Card.Ace &&
+      draft.entry_stage === EntryStage.RemovedCards
+    ) {
+      draft.insurance =
+        take_insurance(draft.hand.concat(draft.dealer, draft.removed_cards)) >=
+        1 / 3;
+    }
+
     draft.hand_value = get_hand_value(draft.hand);
   });
-}
-
-interface ExpectedValues {
-  stand: number;
-  hit?: number;
-  split?: number;
-  double?: number;
-  dealer_bj?: number;
-}
-
-function get_max(ev: ExpectedValues) {
-  ev = { ...ev };
-  delete ev.dealer_bj;
-  return Math.max(...Object.values(ev).filter(n => !isNaN(n)));
-}
-
-function ev_to_string(value: number) {
-  let num = (value * 100).toFixed(2);
-  const padding =
-    Math.abs(value * 100) < 10 ? "  " : Math.abs(value * 100) < 100 ? " " : "";
-  return (padding + (value < 0 ? "" : "+") + num).padEnd(7, "0") + "%";
 }
 
 type WorkerReturn = { data: { ev: ExpectedValues } | { progress: number } };
@@ -332,7 +315,7 @@ function App() {
     ) : (
       <>&nbsp;</>
     );
-  const max_result = state.result && get_max(state.result);
+  const max_result = state.result && get_ev_max(state.result);
   const reset_callback = useCallback(
     () => dispatch({ type: ActionType.Reset }),
     []
@@ -365,81 +348,7 @@ function App() {
                 : undefined
             }
           />
-          {state.result ? (
-            <table className={classes.resultTable}>
-              <tbody>
-                <tr
-                  className={
-                    max_result === state.result.stand
-                      ? classes.selectedResult
-                      : undefined
-                  }
-                >
-                  <td>
-                    <span>Stand:</span>
-                  </td>
-                  <td>
-                    <span>{ev_to_string(state.result.stand)}</span>
-                  </td>
-                </tr>
-                {state.result.hit && (
-                  <tr
-                    className={
-                      max_result === state.result.hit
-                        ? classes.selectedResult
-                        : undefined
-                    }
-                  >
-                    <td>
-                      <span>Hit:</span>
-                    </td>
-                    <td>
-                      <span>{ev_to_string(state.result.hit)}</span>
-                    </td>
-                  </tr>
-                )}
-                {state.result.double && (
-                  <tr
-                    className={
-                      max_result === state.result.double
-                        ? classes.selectedResult
-                        : undefined
-                    }
-                  >
-                    <td>
-                      <span>Double:</span>
-                    </td>
-                    <td>
-                      <span>{ev_to_string(state.result.double)}</span>
-                    </td>
-                  </tr>
-                )}
-                {state.result.split && (
-                  <tr
-                    className={
-                      max_result === state.result.split
-                        ? classes.selectedResult
-                        : undefined
-                    }
-                  >
-                    <td>
-                      <span>Split:</span>
-                    </td>
-                    <td>
-                      <span>{ev_to_string(state.result.split)}</span>
-                    </td>
-                  </tr>
-                )}
-                {state.insurance !== null && (
-                  <tr>
-                    <td colSpan={2} style={{ paddingRight: 5 }}>
-                      {`${state.insurance ? "Take" : "Skip"} insurance`}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          ) : progress ? (
+          {progress ? (
             <div className={classes.progressDiv}>
               <CircularProgress
                 variant="static"
@@ -448,8 +357,86 @@ function App() {
               />
             </div>
           ) : (
-            undefined
-          )}
+            <ResultDisplay result={state.result} insurance={state.insurance} />
+          ) /*(
+            <table className={classes.resultTable}>
+              {state.result && (
+                <tbody>
+                  <tr
+                    className={
+                      max_result === state.result.stand
+                        ? classes.selectedResult
+                        : undefined
+                    }
+                  >
+                    <td>
+                      <span>Stand:</span>
+                    </td>
+                    <td>
+                      <span>{ev_to_string(state.result.stand)}</span>
+                    </td>
+                  </tr>
+                  {state.result.hit && (
+                    <tr
+                      className={
+                        max_result === state.result.hit
+                          ? classes.selectedResult
+                          : undefined
+                      }
+                    >
+                      <td>
+                        <span>Hit:</span>
+                      </td>
+                      <td>
+                        <span>{ev_to_string(state.result.hit)}</span>
+                      </td>
+                    </tr>
+                  )}
+                  {state.result.double && (
+                    <tr
+                      className={
+                        max_result === state.result.double
+                          ? classes.selectedResult
+                          : undefined
+                      }
+                    >
+                      <td>
+                        <span>Double:</span>
+                      </td>
+                      <td>
+                        <span>{ev_to_string(state.result.double)}</span>
+                      </td>
+                    </tr>
+                  )}
+                  {state.result.split && (
+                    <tr
+                      className={
+                        max_result === state.result.split
+                          ? classes.selectedResult
+                          : undefined
+                      }
+                    >
+                      <td>
+                        <span>Split:</span>
+                      </td>
+                      <td>
+                        <span>{ev_to_string(state.result.split)}</span>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+                    )}
+              {state.insurance !== null && (
+                <tbody>
+                  <tr>
+                    <td colSpan={2} style={{ paddingRight: 5 }}>
+                      {`${state.insurance ? "Take" : "Skip"} insurance`}
+                    </td>
+                  </tr>
+                </tbody>
+              )}
+            </table>
+              )*/}
         </div>
         {state.entry_stage !== EntryStage.Hand &&
           state.entry_stage !== EntryStage.Start && (

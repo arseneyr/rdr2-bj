@@ -545,7 +545,6 @@ pub struct SpecificHandEV {
     pub hit: Option<f64>,
     pub double: Option<f64>,
     pub split: Option<f64>,
-    pub dealer_bj: Option<f64>,
     dealer_card: Card,
     current_hand: Hand,
     all_evs: HashMap<Hand, HandEV>,
@@ -592,19 +591,6 @@ impl SpecificHandEV {
         self.split = ev
             .and_then(|x| x.split.as_ref())
             .and_then(|x| x[self.dealer_card]);
-        self.dealer_bj = match self.dealer_card {
-            Card::Ace => Some(
-                (&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand)
-                    .unwrap()
-                    .get_card_prob(&Card::Ten),
-            ),
-            Card::Ten => Some(
-                (&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand)
-                    .unwrap()
-                    .get_card_prob(&Card::Ace),
-            ),
-            _ => None,
-        };
     }
 
     pub fn create<F>(
@@ -672,7 +658,6 @@ impl SpecificHandEV {
             hit: None,
             double: None,
             split: None,
-            dealer_bj: None,
             dealer_card,
             current_hand: hand.clone(),
             starting_deck: starting_deck.clone(),

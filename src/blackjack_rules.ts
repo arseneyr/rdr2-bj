@@ -91,3 +91,22 @@ export function merge_valid_maps(...valid_maps: ValidMap[]) {
     { ...all_valid }
   );
 }
+
+export function take_insurance(cards: Card[]) {
+  const num_tens = cards.reduce(
+    (acc, c) => (c === Card.Ten ? acc + 1 : acc),
+    0
+  );
+  return (16 - num_tens) / (52 - cards.length);
+}
+
+export interface ExpectedValues {
+  stand: number;
+  hit?: number;
+  split?: number;
+  double?: number;
+}
+
+export function get_ev_max(ev: ExpectedValues) {
+  return Math.max(...Object.values(ev).filter(n => !isNaN(n)));
+}

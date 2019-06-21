@@ -3,18 +3,21 @@ import { makeStyles } from "@material-ui/core";
 import { Card } from "./blackjack_rules";
 
 const useStyles = makeStyles({
-  entryTable: {
-    "& td:first-child": {
-      paddingRight: 8,
-      verticalAlign: "top"
-    },
-    "& td:last-child": {
-      paddingLeft: 8
-    },
-    "& td": {
-      padding: 0
-    },
-    borderSpacing: 0
+  root: {
+    display: "flex"
+  },
+  labelContainer: {
+    display: "flex",
+    flexDirection: "column",
+    marginRight: 8
+  },
+  cardContainer: {
+    display: "flex",
+    flexDirection: "column",
+    "& > *": {
+      minWidth: 0,
+      wordBreak: "break-word"
+    }
   },
   "@keyframes blink": {
     from: { backgroundColor: "transparent" },
@@ -43,30 +46,26 @@ export default function({ hand, dealer, other, active }: Props) {
   const classes = useStyles();
   const cursor = <span className={classes.cursor}>&nbsp;</span>;
   return (
-    <table className={classes.entryTable}>
-      <tbody>
-        <tr>
-          <td>Hand</td>
-          <td>
-            {card_arry_to_string(hand)}
-            {active === "hand" && cursor}
-          </td>
-        </tr>
-        <tr>
-          <td>Dealer</td>
-          <td>
-            {card_arry_to_string(dealer)}
-            {active === "dealer" && cursor}
-          </td>
-        </tr>
-        <tr>
-          <td>Other</td>
-          <td>
-            {card_arry_to_string(other)}
-            {active === "other" && cursor}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div className={classes.root}>
+      <div className={classes.labelContainer}>
+        <div>Hand</div>
+        <div>Dealer</div>
+        <div>Other</div>
+      </div>
+      <div className={classes.cardContainer}>
+        <div>
+          {card_arry_to_string(hand)}
+          {active === "hand" && cursor}
+        </div>
+        <div>
+          {card_arry_to_string(dealer)}
+          {active === "dealer" && cursor}
+        </div>
+        <div>
+          {card_arry_to_string(other)}
+          {active === "other" && cursor}
+        </div>
+      </div>
+    </div>
   );
 }

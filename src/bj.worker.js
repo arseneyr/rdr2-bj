@@ -24,8 +24,7 @@ addEventListener("message", ({ data }) => {
           hit: ev.hit,
           stand: ev.stand,
           split: ev.split,
-          double: ev.double,
-          dealer_bj: ev.dealer_bj
+          double: ev.double
         }
       });
     });

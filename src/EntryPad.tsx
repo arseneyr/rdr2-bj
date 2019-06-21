@@ -12,7 +12,7 @@ const grouped_cards = array_chunks(
   Object.values(Card)
     .filter(x => typeof x === "number")
     .sort((a, b) => a - b)
-    .slice(1),
+    .slice(0, 9),
   3
 );
 
@@ -73,27 +73,7 @@ export default function EntryPad({
               // eslint-disable-next-line react-hooks/rules-of-hooks, react-hooks/exhaustive-deps
               onClick={useCallback(() => onCardClick(v), [onCardClick])}
             >
-              <Typography
-                variant="h3"
-                style={v === 10 ? { fontSize: "2rem" } : undefined}
-              >
-                {v !== 10 ? (
-                  v
-                ) : (
-                  <table style={{ borderSpacing: "4px" }}>
-                    <tbody>
-                      <tr>
-                        <td>10</td>
-                        <td>J</td>
-                      </tr>
-                      <tr>
-                        <td>Q</td>
-                        <td>K</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                )}
-              </Typography>
+              <Typography variant="h3">{v === 1 ? "A" : v}</Typography>
             </ButtonBase>
           ))}
         </div>
@@ -111,11 +91,24 @@ export default function EntryPad({
         <ButtonBase
           className={classes.button}
           classes={{ disabled: classes.disabledButton }}
-          key={1}
-          disabled={!props.cardsEnabled[1]}
-          onClick={useCallback(() => onCardClick(1), [onCardClick])}
+          key={10}
+          disabled={!props.cardsEnabled[10]}
+          onClick={useCallback(() => onCardClick(10), [onCardClick])}
         >
-          <Typography variant="h3">A</Typography>
+          <Typography variant="h3" style={{ fontSize: "2rem" }}>
+            <table style={{ borderSpacing: "4px" }}>
+              <tbody>
+                <tr>
+                  <td>10</td>
+                  <td>J</td>
+                </tr>
+                <tr>
+                  <td>Q</td>
+                  <td>K</td>
+                </tr>
+              </tbody>
+            </table>
+          </Typography>
         </ButtonBase>
         <ButtonBase
           className={classes.button}
