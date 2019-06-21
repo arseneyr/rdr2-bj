@@ -1,9 +1,9 @@
 use wasm_bindgen::prelude::*;
 
 extern crate indexmap;
-extern crate strum_macros;
-extern crate js_sys;
 
+extern crate js_sys;
+extern crate strum_macros;
 mod dealer_prob;
 mod types;
 
@@ -249,16 +249,18 @@ fn get_double_ev(
 }
 
 
-fn get_split_ev_inner(
+fn get_split_ev_inner<F>(
     dealer_calc: &mut DealerProbCalculator,
     deck: &Deck,
     all_hands: &IndexMap<Hand, RefCell<HandEV>>,
     pair_card: Card,
     recurse: bool,
-    no_blackjack: bool, 
-    progress_callback: Option<&js_sys::Function>
-) -> CardMap<f64> {
-
+    no_blackjack: bool,
+    progress_callback: Option<&F>,
+) -> CardMap<f64>
+where
+    F: Fn(f64),
+{
     let mut ev: CardMap<f64> = CardMap::new();
     let deck = &(deck + pair_card);
     let split_hands: IndexMap<Hand, RefCell<HandEV>> = all_hands
@@ -290,7 +292,7 @@ fn get_split_ev_inner(
         let mut other_split_ev = None;
         if let Some(f) = progress_callback {
             if i % (split_hands.len() / 10) == 0 {
-                f.call1(&JsValue::NULL, &JsValue::from_f64(i as f64 / split_hands.len() as f64)).ok();
+                f(i as f64 / split_hands.len() as f64);
             }
         }
         {
@@ -317,7 +319,7 @@ fn get_split_ev_inner(
                     pair_card,
                     false,
                     no_blackjack,
-                    None
+                    None::<&fn(_)>,
                 ));
             }
             if pair_card != Card::Ace {
@@ -400,20 +402,30 @@ fn get_split_ev_inner(
     ev
 }
 
-fn get_split_ev(
+fn get_split_ev<F>(
     dealer_calc: &mut DealerProbCalculator,
     deck: &Deck,
     all_hands: &IndexMap<Hand, RefCell<HandEV>>,
     hand: &Hand,
     no_blackjack: bool,
-    progress_callback: Option<&js_sys::Function>
-) -> Option<CardMap<f64>> {
-
+    progress_callback: Option<&F>,
+) -> Option<CardMap<f64>>
+where
+    F: Fn(f64),
+{
     let pair_card = hand.iter().nth(0).unwrap();
     if hand.get_count() != 2 || pair_card != hand.iter().nth(1).unwrap() {
         return None;
     };
-    let mut ev = get_split_ev_inner(dealer_calc, deck, all_hands, pair_card, true, no_blackjack, progress_callback);
+    let mut ev = get_split_ev_inner(
+        dealer_calc,
+        deck,
+        all_hands,
+        pair_card,
+        true,
+        no_blackjack,
+        progress_callback,
+    );
     if !no_blackjack {
         // Account for dealer blackjack
         match (
@@ -466,7 +478,7 @@ pub fn compute_all_hand_ev(starting_deck: &Deck) -> HashMap<Hand, HandEV> {
             stand = get_stand_ev(&mut dealer_calc, &deck, hand, *hand_value, false, false);
             hit = get_hit_ev(&deck, &hands, hand, *hand_value, None);
             double = get_double_ev(&deck, &hands, hand, *hand_value, None, false);
-            split = get_split_ev(&mut dealer_calc, &deck, &hands, hand, false, None);
+            split = get_split_ev(&mut dealer_calc, &deck, &hands, hand, false, None::<&fn(_)>);
         }
 
         let mut hand_ev = hand.borrow_mut();
@@ -538,10 +550,35 @@ pub struct SpecificHandEV {
     current_hand: Hand,
     all_evs: HashMap<Hand, HandEV>,
     pair_card: Option<Card>,
-    starting_deck: Deck
+    starting_deck: Deck,
 }
 
 #[wasm_bindgen]
+impl SpecificHandEV {
+    pub fn create_js(
+        remaining_deck: &Deck,
+        hand: &Hand,
+        dealer_card: Card,
+        progress_callback: &js_sys::Function,
+    ) -> SpecificHandEV {
+        SpecificHandEV::create(
+            remaining_deck,
+            hand,
+            dealer_card,
+            Some(&|x| {
+                progress_callback
+                    .call1(&JsValue::NULL, &JsValue::from_f64(x))
+                    .ok();
+            }),
+        )
+    }
+
+    pub fn add_hit_card(&mut self, card: Card) {
+        self.current_hand += card;
+        self.update_probs();
+    }
+}
+
 impl SpecificHandEV {
     fn update_probs(&mut self) {
         let ev = self.all_evs.get(&self.current_hand);
@@ -556,14 +593,29 @@ impl SpecificHandEV {
             .and_then(|x| x.split.as_ref())
             .and_then(|x| x[self.dealer_card]);
         self.dealer_bj = match self.dealer_card {
-            Card::Ace => Some((&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand).unwrap().get_card_prob(&Card::Ten)),
-            Card::Ten => Some((&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand).unwrap().get_card_prob(&Card::Ace)),
-            _ => None
-        }
+            Card::Ace => Some(
+                (&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand)
+                    .unwrap()
+                    .get_card_prob(&Card::Ten),
+            ),
+            Card::Ten => Some(
+                (&(&self.starting_deck - self.dealer_card).unwrap() - &self.current_hand)
+                    .unwrap()
+                    .get_card_prob(&Card::Ace),
+            ),
+            _ => None,
+        };
     }
 
-    pub fn create(remaining_deck: &Deck, hand: &Hand, dealer_card: Card, 
-    progress_callback: &js_sys::Function) -> SpecificHandEV {
+    pub fn create<F>(
+        remaining_deck: &Deck,
+        hand: &Hand,
+        dealer_card: Card,
+        progress_callback: Option<&F>,
+    ) -> SpecificHandEV
+    where
+        F: Fn(f64),
+    {
         let mut dealer_calc = DealerProbCalculator::new();
         let starting_deck = &(remaining_deck + hand) + dealer_card;
         let mut hands = generate_all_hands(&starting_deck);
@@ -599,7 +651,14 @@ impl SpecificHandEV {
                 stand = get_stand_ev(&mut dealer_calc, &deck, hand, *hand_value, false, true);
                 hit = get_hit_ev(&deck, &hands, hand, *hand_value, None);
                 double = get_double_ev(&deck, &hands, hand, *hand_value, None, true);
-                split = get_split_ev(&mut dealer_calc, &deck, &hands, hand, true, Some(progress_callback));
+                split = get_split_ev(
+                    &mut dealer_calc,
+                    &deck,
+                    &hands,
+                    hand,
+                    true,
+                    progress_callback,
+                );
             }
 
             let mut hand_ev = hand.borrow_mut();
@@ -625,10 +684,5 @@ impl SpecificHandEV {
         };
         ret.update_probs();
         ret
-    }
-
-    pub fn add_hit_card(&mut self, card: Card) {
-        self.current_hand += card;
-        self.update_probs();
     }
 }

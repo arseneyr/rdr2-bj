@@ -217,7 +217,6 @@ function reducer(state: State, action: Action) {
         } else {
           draft.entry_stage = EntryStage.Done;
         }
-        console.log(`${draft.dealer} ${draft.result.dealer_bj}`);
         if (
           draft.dealer[0] === Card.Ace &&
           draft.result.dealer_bj !== undefined
@@ -279,7 +278,7 @@ function App({ classes }: WithStyles<typeof styles>) {
       worker.current.postMessage({
         removed_cards: state.removed_cards,
         hand: state.hand,
-        dealer_card: state.dealer
+        dealer_card: state.dealer[0]
       });
     }
   }, [state]);

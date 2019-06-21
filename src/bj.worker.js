@@ -9,11 +9,12 @@ addEventListener("message", ({ data }) => {
       const hand = Deck.new();
       for (card of data.hand) {
         hand.add_card(card);
+        remaining_deck.remove_card(card);
       }
-      const ev = SpecificHandEV.create(
+      const ev = SpecificHandEV.create_js(
         remaining_deck,
         hand,
-        Card.Five,
+        data.dealer_card,
         progress => {
           postMessage({ progress });
         }
