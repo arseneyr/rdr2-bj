@@ -59,37 +59,6 @@ const useStyles = makeStyles({
   instructions: {
     margin: "8px 0px"
   },
-  resultTable: {
-    flex: "1 0 auto",
-    "& td:first-child": {
-      textAlign: "end"
-    },
-    "& td": {
-      padding: 0
-    },
-    "& span": {
-      padding: "0px 5px"
-    },
-    "& td:last-child > span": {
-      whiteSpace: "pre"
-    },
-    borderSpacing: 0,
-    paddingLeft: 16
-  },
-  selectedResult: {
-    "& td:first-child > span": {
-      borderTopLeftRadius: 10,
-      borderBottomLeftRadius: 10
-    },
-    "& td:last-child > span": {
-      borderTopRightRadius: 10,
-      borderBottomRightRadius: 10
-    },
-    "& span": {
-      backgroundColor: "#ffab00",
-      color: "black"
-    }
-  },
   progressDiv: {
     width: 136,
     height: 48,
@@ -99,6 +68,8 @@ const useStyles = makeStyles({
     alignItems: "center"
   }
 });
+
+const fullScreen = (window.navigator as any).standalone as boolean;
 
 enum EntryStage {
   Start,
@@ -358,85 +329,7 @@ function App() {
             </div>
           ) : (
             <ResultDisplay result={state.result} insurance={state.insurance} />
-          ) /*(
-            <table className={classes.resultTable}>
-              {state.result && (
-                <tbody>
-                  <tr
-                    className={
-                      max_result === state.result.stand
-                        ? classes.selectedResult
-                        : undefined
-                    }
-                  >
-                    <td>
-                      <span>Stand:</span>
-                    </td>
-                    <td>
-                      <span>{ev_to_string(state.result.stand)}</span>
-                    </td>
-                  </tr>
-                  {state.result.hit && (
-                    <tr
-                      className={
-                        max_result === state.result.hit
-                          ? classes.selectedResult
-                          : undefined
-                      }
-                    >
-                      <td>
-                        <span>Hit:</span>
-                      </td>
-                      <td>
-                        <span>{ev_to_string(state.result.hit)}</span>
-                      </td>
-                    </tr>
-                  )}
-                  {state.result.double && (
-                    <tr
-                      className={
-                        max_result === state.result.double
-                          ? classes.selectedResult
-                          : undefined
-                      }
-                    >
-                      <td>
-                        <span>Double:</span>
-                      </td>
-                      <td>
-                        <span>{ev_to_string(state.result.double)}</span>
-                      </td>
-                    </tr>
-                  )}
-                  {state.result.split && (
-                    <tr
-                      className={
-                        max_result === state.result.split
-                          ? classes.selectedResult
-                          : undefined
-                      }
-                    >
-                      <td>
-                        <span>Split:</span>
-                      </td>
-                      <td>
-                        <span>{ev_to_string(state.result.split)}</span>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-                    )}
-              {state.insurance !== null && (
-                <tbody>
-                  <tr>
-                    <td colSpan={2} style={{ paddingRight: 5 }}>
-                      {`${state.insurance ? "Take" : "Skip"} insurance`}
-                    </td>
-                  </tr>
-                </tbody>
-              )}
-            </table>
-              )*/}
+          )}
         </div>
         {state.entry_stage !== EntryStage.Hand &&
           state.entry_stage !== EntryStage.Start && (
@@ -467,6 +360,7 @@ function App() {
         submitEnabled={!submit_disabled}
         classes={{ root: classes.entryPad }}
       />
+      {fullScreen && <div style={{ height: 32 }} />}
     </div>
   );
 }
