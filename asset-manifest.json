@@ -1,20 +1,20 @@
 {
   "files": {
-    "main.css": "/rdr2-bj/static/css/main.34649644.chunk.css",
-    "main.js": "/rdr2-bj/static/js/main.6a052938.chunk.js",
-    "main.js.map": "/rdr2-bj/static/js/main.6a052938.chunk.js.map",
+    "main.css": "/rdr2-bj/static/css/main.815fb9fb.chunk.css",
+    "main.js": "/rdr2-bj/static/js/main.94561a0d.chunk.js",
+    "main.js.map": "/rdr2-bj/static/js/main.94561a0d.chunk.js.map",
     "runtime~main.js": "/rdr2-bj/static/js/runtime~main.0803735c.js",
     "runtime~main.js.map": "/rdr2-bj/static/js/runtime~main.0803735c.js.map",
     "static/js/2.6e91e303.chunk.js": "/rdr2-bj/static/js/2.6e91e303.chunk.js",
     "static/js/2.6e91e303.chunk.js.map": "/rdr2-bj/static/js/2.6e91e303.chunk.js.map",
-    "1.e13f564e7e8545b51511.worker.js": "/rdr2-bj/1.e13f564e7e8545b51511.worker.js",
-    "1.e13f564e7e8545b51511.worker.js.map": "/rdr2-bj/1.e13f564e7e8545b51511.worker.js.map",
-    "953d04504e308c95e3f3.module.wasm": "/rdr2-bj/953d04504e308c95e3f3.module.wasm",
-    "e13f564e7e8545b51511.worker.js": "/rdr2-bj/e13f564e7e8545b51511.worker.js",
-    "e13f564e7e8545b51511.worker.js.map": "/rdr2-bj/e13f564e7e8545b51511.worker.js.map",
+    "1.2b2dea17bfe6d9f9c0ce.worker.js": "/rdr2-bj/1.2b2dea17bfe6d9f9c0ce.worker.js",
+    "1.2b2dea17bfe6d9f9c0ce.worker.js.map": "/rdr2-bj/1.2b2dea17bfe6d9f9c0ce.worker.js.map",
+    "2b2dea17bfe6d9f9c0ce.worker.js": "/rdr2-bj/2b2dea17bfe6d9f9c0ce.worker.js",
+    "2b2dea17bfe6d9f9c0ce.worker.js.map": "/rdr2-bj/2b2dea17bfe6d9f9c0ce.worker.js.map",
+    "9fe021223b42644abf24.module.wasm": "/rdr2-bj/9fe021223b42644abf24.module.wasm",
     "index.html": "/rdr2-bj/index.html",
-    "precache-manifest.46c857d301068437537980c4fa35d918.js": "/rdr2-bj/precache-manifest.46c857d301068437537980c4fa35d918.js",
+    "precache-manifest.677faf4b214ba72270229a57d65850d7.js": "/rdr2-bj/precache-manifest.677faf4b214ba72270229a57d65850d7.js",
     "service-worker.js": "/rdr2-bj/service-worker.js",
-    "static/css/main.34649644.chunk.css.map": "/rdr2-bj/static/css/main.34649644.chunk.css.map"
+    "static/css/main.815fb9fb.chunk.css.map": "/rdr2-bj/static/css/main.815fb9fb.chunk.css.map"
   }
 }
